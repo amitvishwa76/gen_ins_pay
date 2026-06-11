@@ -76,10 +76,11 @@ body{
 .qr-block{border:1.5px solid var(--border);border-radius:14px;
   padding:16px;margin-bottom:16px;
   display:flex;flex-direction:column;align-items:center;gap:10px;}
-.qr-wrap{width:200px;height:200px;border-radius:12px;
+.qr-wrap{width:260px;height:260px;border-radius:12px;
   border:3px solid var(--brand-light);background:#fff;
-  display:flex;align-items:center;justify-content:center;}
-#qr-canvas{display:block;}
+  display:flex;align-items:center;justify-content:center;overflow:hidden;}
+#qr-canvas{display:block;width:260px;height:260px;
+  image-rendering:pixelated;image-rendering:crisp-edges;}
 .qr-cap{font-size:11px;color:var(--muted);text-align:center;}
 .qr-apps{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
 .app-chip{font-size:11px;padding:4px 10px;border:1px solid var(--border);
@@ -221,7 +222,7 @@ body{
         <div class="qr-block">
           <div class="sec-lbl" style="margin-bottom:0;">Scan QR Code to Pay</div>
           <div class="qr-wrap">
-            <canvas id="qr-canvas" width="194" height="194"></canvas>
+            <canvas id="qr-canvas" width="600" height="600"></canvas>
           </div>
           <div class="qr-cap">Open GPay, PhonePe or Paytm &rarr; Scan QR</div>
           <div class="qr-apps">
@@ -377,10 +378,10 @@ const QR=(()=>{
     const ctx=canvas.getContext('2d');
     ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
     for(let r=0;r<sz;r++)for(let c=0;c<sz;c++){
-      ctx.fillStyle=mat[r][c]?'#0f3870':'#fff';
+      ctx.fillStyle=mat[r][c]?'#000000':'#ffffff';
       ctx.fillRect(off+(c+mg)*cell,off+(r+mg)*cell,cell,cell);
     }
-    const ls=Math.floor(canvas.width*.16),lp=Math.floor(ls*.22),lt=ls+lp*2;
+    const ls=Math.floor(canvas.width*.12),lp=Math.floor(ls*.22),lt=ls+lp*2;
     const lx=Math.floor((canvas.width-lt)/2),ly=Math.floor((canvas.height-lt)/2);
     ctx.fillStyle='#fff';rnd(ctx,lx,ly,lt,lt,Math.floor(lt*.2));ctx.fill();
     ctx.strokeStyle='#d0dff5';ctx.lineWidth=2;rnd(ctx,lx,ly,lt,lt,Math.floor(lt*.2));ctx.stroke();
@@ -403,8 +404,8 @@ const CFG = {
   base: 'https://amitvishwa76.github.io/gen_ins_pay/',
 
   // Supabase — paste your project URL and anon/public key
-  supabaseUrl:  'PASTE_YOUR_SUPABASE_URL_HERE',       // e.g. https://xyzxyzxyz.supabase.co
-  supabaseKey:  'PASTE_YOUR_SUPABASE_ANON_KEY_HERE',  // anon/public key from Supabase dashboard
+  supabaseUrl:  'https://ovviarvxnyilsospbtuc.supabase.co',       // e.g. https://xyzxyzxyz.supabase.co
+  supabaseKey:  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmlhcnZ4bnlpbHNvc3BidHVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMzI1NzcsImV4cCI6MjA5MjYwODU3N30.GFzFCbDYulCI_ZgnVVAOez8wNQv5w7z9-I58DNrm81A',  // anon/public key from Supabase dashboard
   supabaseTable:'policy_payments'                      // table name (create using SQL below)
 };
 
