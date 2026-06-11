@@ -397,90 +397,123 @@ const QR=(()=>{
   return{render};
 })();
 
-// ── Config & Data ──
-const CFG={
-  region:'https://api.mypurecloud.com.au',
-  token:'',
-  tableId:'PASTE_DATA_TABLE_ID_HERE',
-  base:window.location.origin+window.location.pathname
+// ── Config ──────────────────────────────────────────────────────────
+const CFG = {
+  // GitHub Pages base URL — fixed, QR codes encode this
+  base: 'https://amitvishwa76.github.io/gen_ins_pay/',
+
+  // Supabase — paste your project URL and anon/public key
+  supabaseUrl:  'PASTE_YOUR_SUPABASE_URL_HERE',       // e.g. https://xyzxyzxyz.supabase.co
+  supabaseKey:  'PASTE_YOUR_SUPABASE_ANON_KEY_HERE',  // anon/public key from Supabase dashboard
+  supabaseTable:'policy_payments'                      // table name (create using SQL below)
 };
-const POL={
-  'GI2201045':{name:'Rajesh Mehta',plan:'Gen Health Shield Plus',mem:'Self \u00b7 Spouse \u00b7 1 Child',amt:18450,due:'15 Jun 2026',chip:'15 Jun'},
-  'GI2201089':{name:'Sunita Rao',plan:'Gen Health Suraksha',mem:'Self \u00b7 Spouse',amt:11200,due:'18 Jun 2026',chip:'18 Jun'},
-  'GI2201134':{name:'Arvind Kulkarni',plan:'Gen Health Family Floater',mem:'Self \u00b7 Spouse \u00b7 2 Children',amt:32800,due:'20 Jun 2026',chip:'20 Jun'},
-  'GI2201178':{name:'Pooja Desai',plan:'Gen Health Individual',mem:'Self',amt:6900,due:'22 Jun 2026',chip:'22 Jun'},
-  'GI2201203':{name:'Vikram Nair',plan:'Gen Health Shield Plus',mem:'Self \u00b7 Spouse',amt:24100,due:'25 Jun 2026',chip:'25 Jun'}
+
+// ── Policy data ──────────────────────────────────────────────────────
+const POL = {
+  'GI2201045':{name:'Rajesh Mehta',    plan:'Gen Health Shield Plus',    mem:'Self \u00b7 Spouse \u00b7 1 Child',    amt:18450, due:'15 Jun 2026', chip:'15 Jun'},
+  'GI2201089':{name:'Sunita Rao',      plan:'Gen Health Suraksha',       mem:'Self \u00b7 Spouse',                   amt:11200, due:'18 Jun 2026', chip:'18 Jun'},
+  'GI2201134':{name:'Arvind Kulkarni', plan:'Gen Health Family Floater', mem:'Self \u00b7 Spouse \u00b7 2 Children', amt:32800, due:'20 Jun 2026', chip:'20 Jun'},
+  'GI2201178':{name:'Pooja Desai',     plan:'Gen Health Individual',     mem:'Self',                                 amt:6900,  due:'22 Jun 2026', chip:'22 Jun'},
+  'GI2201203':{name:'Vikram Nair',     plan:'Gen Health Shield Plus',    mem:'Self \u00b7 Spouse',                   amt:24100, due:'25 Jun 2026', chip:'25 Jun'}
 };
-const params=new URLSearchParams(window.location.search);
-const pid=params.get('policy')||'GI2201045';
-const tok=params.get('token')||CFG.token;
-const pol=POL[pid]||POL['GI2201045'];
-const inr=n=>'\u20b9'+n.toLocaleString('en-IN');
 
-document.getElementById('d-amt').textContent=inr(pol.amt);
-document.getElementById('d-due').textContent=`Due by ${pol.due} \u00b7 Policy ${pid}`;
-document.getElementById('d-plan').textContent=pol.plan;
-document.getElementById('d-mem').textContent=pol.mem;
-document.getElementById('d-chip').textContent=`Due ${pol.chip}`;
-document.getElementById('s-amt').textContent=inr(pol.amt);
-document.getElementById('s-pol').textContent=pid;
-document.getElementById('s-plan').textContent=pol.plan;
+const params = new URLSearchParams(window.location.search);
+const pid    = params.get('policy') || 'GI2201045';
+const pol    = POL[pid] || POL['GI2201045'];
+const inr    = n => '\u20b9' + n.toLocaleString('en-IN');
 
-QR.render(document.getElementById('qr-canvas'),CFG.base+'?policy='+pid);
+// ── Populate UI ──────────────────────────────────────────────────────
+document.getElementById('d-amt').textContent  = inr(pol.amt);
+document.getElementById('d-due').textContent  = `Due by ${pol.due} \u00b7 Policy ${pid}`;
+document.getElementById('d-plan').textContent = pol.plan;
+document.getElementById('d-mem').textContent  = pol.mem;
+document.getElementById('d-chip').textContent = `Due ${pol.chip}`;
+document.getElementById('s-amt').textContent  = inr(pol.amt);
+document.getElementById('s-pol').textContent  = pid;
+document.getElementById('s-plan').textContent = pol.plan;
 
-let secs=899;
-const cdEl=document.getElementById('cd');
-const tmr=setInterval(()=>{
-  if(secs<=0){clearInterval(tmr);cdEl.textContent='Expired';return;}
-  cdEl.textContent=String(Math.floor(secs/60)).padStart(2,'0')+':'+String(secs%60).padStart(2,'0');
+// ── QR code — encodes the GitHub Pages URL with policy param ─────────
+QR.render(document.getElementById('qr-canvas'), CFG.base + '?policy=' + pid);
+
+// ── Countdown 15 min ─────────────────────────────────────────────────
+let secs = 899;
+const cdEl = document.getElementById('cd');
+const tmr  = setInterval(() => {
+  if (secs <= 0) { clearInterval(tmr); cdEl.textContent = 'Expired'; return; }
+  cdEl.textContent = String(Math.floor(secs/60)).padStart(2,'0') + ':' + String(secs%60).padStart(2,'0');
   secs--;
-},1000);
+}, 1000);
 
-function copyUPI(){
-  navigator.clipboard.writeText('geninsurance@axis').then(()=>{
-    const b=document.querySelector('.copy-btn');
-    b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',2000);
+function copyUPI() {
+  navigator.clipboard.writeText('geninsurance@axis').then(() => {
+    const b = document.querySelector('.copy-btn');
+    b.textContent = 'Copied!'; setTimeout(() => b.textContent = 'Copy', 2000);
   });
 }
 
-function show(id){
-  document.getElementById('pay-screen').style.display=id==='pay-screen'?'block':'none';
-  document.getElementById('proc').style.display=id==='proc'?'flex':'none';
-  document.getElementById('succ').style.display=id==='succ'?'flex':'none';
+function show(id) {
+  document.getElementById('pay-screen').style.display = id === 'pay-screen' ? 'block' : 'none';
+  document.getElementById('proc').style.display       = id === 'proc'       ? 'flex'  : 'none';
+  document.getElementById('succ').style.display       = id === 'succ'       ? 'flex'  : 'none';
 }
 
-let txnId='';
-async function writeTable(txn){
-  if(!tok||CFG.tableId==='PASTE_DATA_TABLE_ID_HERE')return{ok:false,err:'Not configured'};
-  const body={key:pid,paymentStatus:'PAID',transactionId:txn,amount:pol.amt,
-    paidAt:new Date().toISOString(),policyHolder:pol.name,plan:pol.plan};
-  const url=`${CFG.region}/api/v2/flows/datatables/${CFG.tableId}/rows/${pid}`;
-  for(const m of['PATCH','POST']){
-    try{
-      const r=await fetch(m==='POST'?`${CFG.region}/api/v2/flows/datatables/${CFG.tableId}/rows`:url,
-        {method:m,headers:{'Authorization':`Bearer ${tok}`,'Content-Type':'application/json'},body:JSON.stringify(body)});
-      if(r.ok)return{ok:true};
-      if(m==='PATCH'&&r.status===404)continue;
-      return{ok:false,err:'HTTP '+r.status};
-    }catch(e){if(m==='PATCH')continue;return{ok:false,err:e.message};}
+// ── Write payment to Supabase ────────────────────────────────────────
+// Uses Supabase REST API directly — no SDK needed, zero dependencies
+async function writeSupabase(txn) {
+  if (CFG.supabaseUrl === 'PASTE_YOUR_SUPABASE_URL_HERE') {
+    return { ok: false, err: 'Supabase not configured' };
   }
-  return{ok:false,err:'Failed'};
+  const url  = `${CFG.supabaseUrl}/rest/v1/${CFG.supabaseTable}`;
+  const body = {
+    policy_no:      pid,
+    payment_status: 'PAID',
+    transaction_id: txn,
+    amount:         pol.amt,
+    paid_at:        new Date().toISOString(),
+    policy_holder:  pol.name,
+    plan:           pol.plan,
+    due_date:       pol.due
+  };
+  try {
+    const res = await fetch(url, {
+      method:  'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'apikey':         CFG.supabaseKey,
+        'Authorization': `Bearer ${CFG.supabaseKey}`,
+        'Prefer':        'resolution=merge-duplicates'  // upsert — updates row if policy_no exists
+      },
+      body: JSON.stringify(body)
+    });
+    if (res.ok || res.status === 201) return { ok: true };
+    const err = await res.json().catch(() => ({}));
+    return { ok: false, err: err.message || 'HTTP ' + res.status };
+  } catch (e) {
+    return { ok: false, err: e.message };
+  }
 }
 
-async function doPayment(){
-  document.getElementById('pay-btn').disabled=true;
+// ── Payment flow ─────────────────────────────────────────────────────
+let txnId = '';
+async function doPayment() {
+  document.getElementById('pay-btn').disabled = true;
   clearInterval(tmr);
   show('proc');
-  await new Promise(r=>setTimeout(r,2000));
-  txnId='TXN'+Date.now();
-  document.getElementById('s-txn').textContent=txnId;
-  document.getElementById('s-time').textContent=new Date().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
+  await new Promise(r => setTimeout(r, 2000));
+  txnId = 'TXN' + Date.now();
+  document.getElementById('s-txn').textContent  = txnId;
+  document.getElementById('s-time').textContent = new Date().toLocaleString('en-IN', {dateStyle:'medium', timeStyle:'short'});
   show('succ');
-  const res=await writeTable(txnId);
-  const wrap=document.getElementById('wa-st');
-  const txt=document.getElementById('wa-txt');
-  if(res.ok){txt.textContent='\u2713 Assistant notified \u2014 payment confirmed';wrap.style.color='var(--success)';}
-  else{txt.textContent='Ref: '+txnId+' \u2014 configure DataTable to auto-notify';wrap.style.color='var(--muted)';}
+  const res  = await writeSupabase(txnId);
+  const wrap = document.getElementById('wa-st');
+  const txt  = document.getElementById('wa-txt');
+  if (res.ok) {
+    txt.textContent  = '\u2713 Payment recorded \u2014 assistant will be notified shortly';
+    wrap.style.color = 'var(--success)';
+  } else {
+    txt.textContent  = 'Ref: ' + txnId + ' \u2014 ' + (res.err || 'configure Supabase to auto-notify');
+    wrap.style.color = 'var(--muted)';
+  }
 }
 
 show('pay-screen');
