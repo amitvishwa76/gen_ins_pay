@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Gen Insurance — Secure Payment</title>
+<style>
+:root{
+  --brand:#1a56a0;--brand-dark:#0f3870;--brand-light:#e8f0fb;
+  --success:#0d9e6e;--success-bg:#e6f7f2;--warn:#d97706;
+  --text:#111827;--muted:#6b7280;--border:#e5e7eb;--page-bg:#f3f6fb;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:var(--page-bg);color:var(--text);
+  min-height:100vh;
+  display:block;
+  padding:24px 16px 48px;
+}
+.wrap{max-width:440px;margin:0 auto;}
+
+/* Header */
+.hdr{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
+.logo-mark{width:38px;height:38px;background:var(--brand);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo-mark svg{width:22px;height:22px;}
+.logo-text{font-size:15px;font-weight:700;color:var(--brand-dark);letter-spacing:-.3px;}
+.logo-sub{font-size:11px;color:var(--muted);}
+.ssl{margin-left:auto;display:flex;align-items:center;gap:5px;
+  font-size:11px;color:var(--success);font-weight:600;}
+.ssl svg{width:13px;height:13px;}
+
+/* Card */
+.card{background:#fff;border-radius:20px;
+  box-shadow:0 4px 24px rgba(26,86,160,.1),0 1px 4px rgba(0,0,0,.05);
+  overflow:hidden;width:100%;}
+
+/* Blue band */
+.band{background:linear-gradient(135deg,#1a56a0,#0f3870);
+  padding:20px 24px;color:#fff;}
+.band-lbl{font-size:11px;font-weight:600;opacity:.75;letter-spacing:.6px;text-transform:uppercase;}
+.band-amt{font-size:36px;font-weight:700;letter-spacing:-1px;margin:4px 0 2px;}
+.band-sub{font-size:12px;opacity:.8;}
+
+/* Policy strip */
+.pol-strip{padding:14px 24px;background:var(--brand-light);
+  display:flex;align-items:center;gap:10px;
+  border-bottom:1px solid var(--border);}
+.pol-strip svg{width:16px;height:16px;flex-shrink:0;color:var(--brand);}
+.pol-name{font-size:13px;font-weight:600;color:var(--brand-dark);}
+.pol-meta{font-size:11px;color:var(--muted);margin-top:1px;}
+.pol-info{flex:1;min-width:0;}
+.chip{font-size:11px;font-weight:600;background:#fff3cd;color:var(--warn);
+  border:1px solid #fde68a;border-radius:20px;padding:3px 10px;white-space:nowrap;flex-shrink:0;}
+
+/* UPI section */
+.sec{padding:20px 24px 0;}
+.sec-lbl{font-size:11px;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;}
+
+.upi-box{display:flex;align-items:center;gap:10px;
+  border:1.5px solid var(--border);border-radius:12px;
+  padding:12px 14px;margin-bottom:16px;}
+.upi-ico{width:32px;height:32px;border-radius:8px;background:#e8f0fb;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.upi-lbl{font-size:11px;color:var(--muted);}
+.upi-val{font-family:'Courier New',monospace;font-size:13px;font-weight:600;margin-top:1px;}
+.upi-det{flex:1;min-width:0;}
+.copy-btn{background:none;border:1px solid var(--border);border-radius:8px;
+  padding:5px 10px;font-size:11px;font-weight:600;color:var(--brand);
+  cursor:pointer;flex-shrink:0;}
+.copy-btn:hover{background:var(--brand-light);}
+
+/* QR block */
+.qr-block{border:1.5px solid var(--border);border-radius:14px;
+  padding:16px;margin-bottom:16px;
+  display:flex;flex-direction:column;align-items:center;gap:10px;}
+.qr-wrap{width:200px;height:200px;border-radius:12px;
+  border:3px solid var(--brand-light);background:#fff;
+  display:flex;align-items:center;justify-content:center;}
+#qr-canvas{display:block;}
+.qr-cap{font-size:11px;color:var(--muted);text-align:center;}
+.qr-apps{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+.app-chip{font-size:11px;padding:4px 10px;border:1px solid var(--border);
+  border-radius:20px;color:var(--muted);background:#fafafa;}
+
+/* Timer */
+.timer{display:flex;align-items:center;gap:6px;
+  font-size:12px;color:var(--warn);font-weight:600;
+  padding:10px 24px;background:#fffbf2;
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.timer svg{width:14px;height:14px;flex-shrink:0;}
+#cd{font-family:'Courier New',monospace;}
+
+/* Pay button */
+.pay-sec{padding:20px 24px;}
+#pay-btn{width:100%;background:linear-gradient(135deg,#1a56a0,#0f3870);
+  color:#fff;border:none;border-radius:14px;padding:16px;
+  font-size:16px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 4px 16px rgba(26,86,160,.3);transition:opacity .2s;}
+#pay-btn:hover{opacity:.92;}
+#pay-btn:active{transform:scale(.98);}
+#pay-btn:disabled{opacity:.6;cursor:not-allowed;}
+#pay-btn svg{width:18px;height:18px;}
+.fine{text-align:center;font-size:11px;color:var(--muted);
+  margin-top:10px;line-height:1.6;}
+.fine a{color:var(--brand);text-decoration:none;}
+
+/* Processing */
+#proc{display:none;padding:48px 24px;
+  flex-direction:column;align-items:center;gap:16px;text-align:center;}
+.spin{width:52px;height:52px;border:4px solid var(--brand-light);
+  border-top-color:var(--brand);border-radius:50%;
+  animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.proc-ttl{font-size:17px;font-weight:700;color:var(--brand-dark);}
+.proc-sub{font-size:13px;color:var(--muted);}
+
+/* Success */
+#succ{display:none;padding:36px 24px 40px;
+  flex-direction:column;align-items:center;gap:0;text-align:center;}
+.succ-ring{width:80px;height:80px;border-radius:50%;background:var(--success-bg);
+  display:flex;align-items:center;justify-content:center;margin-bottom:16px;
+  animation:pop .4s cubic-bezier(.175,.885,.32,1.275);}
+@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+.succ-ring svg{width:40px;height:40px;color:var(--success);}
+.succ-ttl{font-size:22px;font-weight:700;margin-bottom:6px;}
+.succ-amt{font-size:32px;font-weight:700;color:var(--success);
+  letter-spacing:-1px;margin-bottom:4px;}
+.succ-sub{font-size:13px;color:var(--muted);margin-bottom:24px;}
+
+.rcpt{width:100%;border:1.5px solid var(--border);
+  border-radius:14px;overflow:hidden;margin-bottom:20px;text-align:left;}
+.rcpt-row{display:flex;justify-content:space-between;align-items:center;
+  padding:11px 16px;border-bottom:1px solid var(--border);font-size:13px;}
+.rcpt-row:last-child{border-bottom:none;}
+.rcpt-lbl{color:var(--muted);}
+.rcpt-val{font-weight:600;font-family:'Courier New',monospace;font-size:12px;}
+.rcpt-val.g{color:var(--success);}
+
+.ntfy{width:100%;background:var(--brand-light);border-radius:12px;
+  padding:14px 16px;display:flex;gap:10px;align-items:flex-start;
+  text-align:left;margin-bottom:16px;}
+.ntfy svg{width:16px;height:16px;color:var(--brand);flex-shrink:0;margin-top:1px;}
+.ntfy-txt{font-size:12px;color:var(--brand-dark);line-height:1.6;}
+
+#wa-st{font-size:12px;color:var(--muted);
+  display:flex;align-items:center;gap:6px;}
+#wa-st svg{width:14px;height:14px;flex-shrink:0;}
+
+/* Footer */
+.ftr{text-align:center;font-size:11px;color:var(--muted);
+  margin-top:20px;line-height:1.8;}
+.ftr a{color:var(--brand);text-decoration:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <div class="hdr">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-text">Gen Insurance</div>
+      <div class="logo-sub">Secure Payment Portal</div>
+    </div>
+    <div class="ssl">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      SSL Secured
+    </div>
+  </div>
+
+  <!-- Card -->
+  <div class="card">
+
+    <!-- Payment screen -->
+    <div id="pay-screen">
+      <div class="band">
+        <div class="band-lbl">Renewal Premium Due</div>
+        <div class="band-amt" id="d-amt">&#8377;18,450</div>
+        <div class="band-sub" id="d-due">Due by 15 Jun 2026 &middot; Policy GI2201045</div>
+      </div>
+
+      <div class="pol-strip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <div class="pol-info">
+          <div class="pol-name" id="d-plan">Gen Health Shield Plus</div>
+          <div class="pol-meta" id="d-mem">Self &middot; Spouse &middot; 1 Child</div>
+        </div>
+        <div class="chip" id="d-chip">Due 15 Jun</div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-lbl">Pay via UPI</div>
+
+        <div class="upi-box">
+          <div class="upi-ico">
+            <svg width="22" height="22" viewBox="0 0 40 40">
+              <rect width="40" height="40" rx="6" fill="#e8f0fb"/>
+              <text x="50%" y="56%" dominant-baseline="middle" text-anchor="middle"
+                font-size="13" font-weight="800" fill="#1a56a0" font-family="Arial,sans-serif">UPI</text>
+            </svg>
+          </div>
+          <div class="upi-det">
+            <div class="upi-lbl">UPI ID</div>
+            <div class="upi-val">geninsurance@axis</div>
+          </div>
+          <button class="copy-btn" onclick="copyUPI()">Copy</button>
+        </div>
+
+        <div class="qr-block">
+          <div class="sec-lbl" style="margin-bottom:0;">Scan QR Code to Pay</div>
+          <div class="qr-wrap">
+            <canvas id="qr-canvas" width="194" height="194"></canvas>
+          </div>
+          <div class="qr-cap">Open GPay, PhonePe or Paytm &rarr; Scan QR</div>
+          <div class="qr-apps">
+            <span class="app-chip">GPay</span>
+            <span class="app-chip">PhonePe</span>
+            <span class="app-chip">Paytm</span>
+            <span class="app-chip">BHIM</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="timer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        Link expires in&nbsp;<span id="cd">14:59</span>
+      </div>
+
+      <div class="pay-sec">
+        <button id="pay-btn" onclick="doPayment()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+          </svg>
+          Pay Now
+        </button>
+        <div class="fine">
+          By proceeding you agree to Gen Insurance <a href="#">Terms &amp; Conditions</a>.<br>
+          This is a demo environment. No real transaction will occur.
+        </div>
+      </div>
+    </div><!-- /pay-screen -->
+
+    <!-- Processing -->
+    <div id="proc">
+      <div class="spin"></div>
+      <div class="proc-ttl">Processing Payment&hellip;</div>
+      <div class="proc-sub">Please do not close this window.<br>This usually takes a few seconds.</div>
+    </div>
+
+    <!-- Success -->
+    <div id="succ">
+      <div class="succ-ring">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <div class="succ-ttl">Payment Successful!</div>
+      <div class="succ-amt" id="s-amt">&#8377;18,450</div>
+      <div class="succ-sub">Your policy has been renewed successfully.</div>
+      <div class="rcpt">
+        <div class="rcpt-row"><span class="rcpt-lbl">Transaction ID</span><span class="rcpt-val" id="s-txn">—</span></div>
+        <div class="rcpt-row"><span class="rcpt-lbl">Policy Number</span><span class="rcpt-val" id="s-pol">—</span></div>
+        <div class="rcpt-row"><span class="rcpt-lbl">Plan</span><span class="rcpt-val" id="s-plan">—</span></div>
+        <div class="rcpt-row"><span class="rcpt-lbl">Paid To</span><span class="rcpt-val">geninsurance@axis</span></div>
+        <div class="rcpt-row"><span class="rcpt-lbl">Date &amp; Time</span><span class="rcpt-val" id="s-time">—</span></div>
+        <div class="rcpt-row"><span class="rcpt-lbl">Status</span><span class="rcpt-val g">&#10003; SUCCESS</span></div>
+      </div>
+      <div class="ntfy">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <div class="ntfy-txt">
+          <strong>What happens next?</strong><br>
+          Your policy document and health card will arrive by email within 2 hours. Our assistant has been notified of your payment.
+        </div>
+      </div>
+      <div id="wa-st">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span id="wa-txt">Notifying assistant&hellip;</span>
+      </div>
+    </div><!-- /succ -->
+
+  </div><!-- /card -->
+
+  <div class="ftr">
+    Powered by <strong>Gen Insurance</strong> &middot; IRDAI Reg. No. DEMO-2024<br>
+    <a href="#">Privacy Policy</a> &middot; <a href="#">Help</a> &middot; 1800-XXX-XXXX
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+// ── Inline QR Generator (Reed-Solomon, Version 1-10, ECC M, Mask 0) ──
+const QR=(()=>{
+  const EXP=new Uint8Array(512),LOG=new Uint8Array(256);
+  let v=1;
+  for(let i=0;i<255;i++){EXP[i]=v;LOG[v]=i;v<<=1;if(v&0x100)v^=0x11d;}
+  for(let i=255;i<512;i++)EXP[i]=EXP[i-255];
+  const mul=(a,b)=>(!a||!b)?0:EXP[(LOG[a]+LOG[b])%255];
+  function pmul(p,q){const r=new Array(p.length+q.length-1).fill(0);for(let i=0;i<p.length;i++)for(let j=0;j<q.length;j++)r[i+j]^=mul(p[i],q[j]);return r;}
+  function gen(n){let g=[1];for(let i=0;i<n;i++)g=pmul(g,[1,EXP[i]]);return g;}
+  function rs(data,nec){const g=gen(nec),m=[...data,...new Array(nec).fill(0)];for(let i=0;i<data.length;i++){const c=m[i];if(c)for(let j=0;j<g.length;j++)m[i+j]^=mul(g[j],c);}return m.slice(data.length);}
+  const ECC={1:[26,16],2:[44,28],3:[70,44],4:[100,64],5:[134,86],6:[172,108],7:[196,124],8:[242,154],9:[292,182],10:[346,216]};
+  const CAP={1:14,2:26,3:42,4:62,5:84,6:106,7:122,8:152,9:180,10:213};
+  const ALN={2:[6,18],3:[6,22],4:[6,26],5:[6,30],6:[6,34],7:[6,22,38],8:[6,24,42],9:[6,26,46],10:[6,28,50]};
+  function bits(n,l){const b=[];for(let i=l-1;i>=0;i--)b.push((n>>i)&1);return b;}
+  function encode(txt){
+    const by=[];for(let i=0;i<txt.length;i++)by.push(txt.charCodeAt(i)&0xff);
+    const n=by.length;
+    let ver=null;for(let v=1;v<=10;v++){if(n<=CAP[v]){ver=v;break;}}
+    if(!ver)throw new Error('Too long');
+    const[tc,dc]=ECC[ver],nec=tc-dc;
+    let b=[...bits(4,4),...bits(n,8)];
+    for(const x of by)b.push(...bits(x,8));
+    b.push(...new Array(Math.min(4,dc*8-b.length)).fill(0));
+    while(b.length%8)b.push(0);
+    const pad=[0xEC,0x11];let pi=0;
+    while(b.length<dc*8){b.push(...bits(pad[pi%2],8));pi++;}
+    const cw=[];for(let i=0;i<dc*8;i+=8)cw.push(parseInt(b.slice(i,i+8).join(''),2));
+    const ec=rs(cw,nec);
+    const ab=[];for(const c of[...cw,...ec])ab.push(...bits(c,8));
+    const sz=ver*4+17;
+    const mat=Array.from({length:sz},()=>new Array(sz).fill(null));
+    const rsv=Array.from({length:sz},()=>new Array(sz).fill(false));
+    const pl=(r,c,v)=>{mat[r][c]=v;rsv[r][c]=true;};
+    function finder(r,c){
+      for(let i=0;i<7;i++)for(let j=0;j<7;j++)pl(r+i,c+j,(i===0||i===6||j===0||j===6||(i>=2&&i<=4&&j>=2&&j<=4))?1:0);
+      for(let i=0;i<8;i++){if(r+i<sz)pl(r+i,c+(c===0?7:-1),0);if(c+i<sz)pl(r+(r===0?7:-1),c+i,0);}
+    }
+    finder(0,0);finder(0,sz-7);finder(sz-7,0);
+    for(let i=8;i<sz-8;i++){pl(6,i,i%2===0?1:0);pl(i,6,i%2===0?1:0);}
+    pl(sz-8,8,1);
+    for(let i=0;i<6;i++){rsv[8][i]=true;rsv[i][8]=true;}
+    rsv[8][7]=rsv[8][8]=rsv[7][8]=true;
+    for(let i=sz-8;i<sz;i++){rsv[8][i]=true;rsv[i][8]=true;}
+    if(ALN[ver]){const pos=ALN[ver];for(const r of pos)for(const c of pos){if(rsv[r][c])continue;for(let i=-2;i<=2;i++)for(let j=-2;j<=2;j++)pl(r+i,c+j,(Math.abs(i)===2||Math.abs(j)===2||(i===0&&j===0))?1:0);}}
+    let idx=0,col=sz-1,up=true;
+    while(col>0){
+      if(col===6)col--;
+      const rows=up?Array.from({length:sz},(_,i)=>sz-1-i):Array.from({length:sz},(_,i)=>i);
+      for(const row of rows)for(const d of[0,1]){const c2=col-d;if(!rsv[row][c2])mat[row][c2]=idx<ab.length?ab[idx++]:0;}
+      col-=2;up=!up;
+    }
+    for(let r=0;r<sz;r++)for(let c=0;c<sz;c++)if(!rsv[r][c]&&(r+c)%2===0)mat[r][c]^=1;
+    let fd=(0b00<<3)|0,fmt=fd<<10;
+    const g2=0b10100110111;
+    for(let i=4;i>=0;i--)if(fmt&(1<<(i+10)))fmt^=g2<<i;
+    const ff=((fd<<10)|fmt)^0b101010000010010;
+    const fs=bits(ff,15);
+    for(let i=0;i<6;i++){mat[8][i]=fs[i];mat[i][8]=fs[i];}
+    mat[8][7]=fs[6];mat[8][8]=fs[7];mat[7][8]=fs[8];
+    for(let i=sz-7;i<sz;i++)mat[8][i]=fs[i-(sz-7)+7];
+    for(let i=sz-8;i<sz;i++)mat[i][8]=fs[14-(i-(sz-8))];
+    return{mat,sz};
+  }
+  function rnd(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();}
+  function render(canvas,text){
+    const{mat,sz}=encode(text);
+    const mg=4,total=sz+mg*2,cell=Math.floor(canvas.width/total);
+    const off=Math.floor((canvas.width-cell*total)/2);
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+    for(let r=0;r<sz;r++)for(let c=0;c<sz;c++){
+      ctx.fillStyle=mat[r][c]?'#0f3870':'#fff';
+      ctx.fillRect(off+(c+mg)*cell,off+(r+mg)*cell,cell,cell);
+    }
+    const ls=Math.floor(canvas.width*.16),lp=Math.floor(ls*.22),lt=ls+lp*2;
+    const lx=Math.floor((canvas.width-lt)/2),ly=Math.floor((canvas.height-lt)/2);
+    ctx.fillStyle='#fff';rnd(ctx,lx,ly,lt,lt,Math.floor(lt*.2));ctx.fill();
+    ctx.strokeStyle='#d0dff5';ctx.lineWidth=2;rnd(ctx,lx,ly,lt,lt,Math.floor(lt*.2));ctx.stroke();
+    const sx=lx+lp,sy=ly+lp,sw=ls,sh=ls;
+    ctx.fillStyle='#1a56a0';ctx.beginPath();
+    ctx.moveTo(sx+sw/2,sy);ctx.lineTo(sx+sw,sy+sh*.25);ctx.lineTo(sx+sw,sy+sh*.67);
+    ctx.lineTo(sx+sw/2,sy+sh);ctx.lineTo(sx,sy+sh*.67);ctx.lineTo(sx,sy+sh*.25);
+    ctx.closePath();ctx.fill();
+    const fs2=Math.floor(sh*.42);
+    ctx.fillStyle='#fff';ctx.font=`bold ${fs2}px Arial,sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('G',sx+sw/2,sy+sh*.52);
+  }
+  return{render};
+})();
+
+// ── Config & Data ──
+const CFG={
+  region:'https://api.mypurecloud.com.au',
+  token:'',
+  tableId:'PASTE_DATA_TABLE_ID_HERE',
+  base:window.location.origin+window.location.pathname
+};
+const POL={
+  'GI2201045':{name:'Rajesh Mehta',plan:'Gen Health Shield Plus',mem:'Self \u00b7 Spouse \u00b7 1 Child',amt:18450,due:'15 Jun 2026',chip:'15 Jun'},
+  'GI2201089':{name:'Sunita Rao',plan:'Gen Health Suraksha',mem:'Self \u00b7 Spouse',amt:11200,due:'18 Jun 2026',chip:'18 Jun'},
+  'GI2201134':{name:'Arvind Kulkarni',plan:'Gen Health Family Floater',mem:'Self \u00b7 Spouse \u00b7 2 Children',amt:32800,due:'20 Jun 2026',chip:'20 Jun'},
+  'GI2201178':{name:'Pooja Desai',plan:'Gen Health Individual',mem:'Self',amt:6900,due:'22 Jun 2026',chip:'22 Jun'},
+  'GI2201203':{name:'Vikram Nair',plan:'Gen Health Shield Plus',mem:'Self \u00b7 Spouse',amt:24100,due:'25 Jun 2026',chip:'25 Jun'}
+};
+const params=new URLSearchParams(window.location.search);
+const pid=params.get('policy')||'GI2201045';
+const tok=params.get('token')||CFG.token;
+const pol=POL[pid]||POL['GI2201045'];
+const inr=n=>'\u20b9'+n.toLocaleString('en-IN');
+
+document.getElementById('d-amt').textContent=inr(pol.amt);
+document.getElementById('d-due').textContent=`Due by ${pol.due} \u00b7 Policy ${pid}`;
+document.getElementById('d-plan').textContent=pol.plan;
+document.getElementById('d-mem').textContent=pol.mem;
+document.getElementById('d-chip').textContent=`Due ${pol.chip}`;
+document.getElementById('s-amt').textContent=inr(pol.amt);
+document.getElementById('s-pol').textContent=pid;
+document.getElementById('s-plan').textContent=pol.plan;
+
+QR.render(document.getElementById('qr-canvas'),CFG.base+'?policy='+pid);
+
+let secs=899;
+const cdEl=document.getElementById('cd');
+const tmr=setInterval(()=>{
+  if(secs<=0){clearInterval(tmr);cdEl.textContent='Expired';return;}
+  cdEl.textContent=String(Math.floor(secs/60)).padStart(2,'0')+':'+String(secs%60).padStart(2,'0');
+  secs--;
+},1000);
+
+function copyUPI(){
+  navigator.clipboard.writeText('geninsurance@axis').then(()=>{
+    const b=document.querySelector('.copy-btn');
+    b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',2000);
+  });
+}
+
+function show(id){
+  document.getElementById('pay-screen').style.display=id==='pay-screen'?'block':'none';
+  document.getElementById('proc').style.display=id==='proc'?'flex':'none';
+  document.getElementById('succ').style.display=id==='succ'?'flex':'none';
+}
+
+let txnId='';
+async function writeTable(txn){
+  if(!tok||CFG.tableId==='PASTE_DATA_TABLE_ID_HERE')return{ok:false,err:'Not configured'};
+  const body={key:pid,paymentStatus:'PAID',transactionId:txn,amount:pol.amt,
+    paidAt:new Date().toISOString(),policyHolder:pol.name,plan:pol.plan};
+  const url=`${CFG.region}/api/v2/flows/datatables/${CFG.tableId}/rows/${pid}`;
+  for(const m of['PATCH','POST']){
+    try{
+      const r=await fetch(m==='POST'?`${CFG.region}/api/v2/flows/datatables/${CFG.tableId}/rows`:url,
+        {method:m,headers:{'Authorization':`Bearer ${tok}`,'Content-Type':'application/json'},body:JSON.stringify(body)});
+      if(r.ok)return{ok:true};
+      if(m==='PATCH'&&r.status===404)continue;
+      return{ok:false,err:'HTTP '+r.status};
+    }catch(e){if(m==='PATCH')continue;return{ok:false,err:e.message};}
+  }
+  return{ok:false,err:'Failed'};
+}
+
+async function doPayment(){
+  document.getElementById('pay-btn').disabled=true;
+  clearInterval(tmr);
+  show('proc');
+  await new Promise(r=>setTimeout(r,2000));
+  txnId='TXN'+Date.now();
+  document.getElementById('s-txn').textContent=txnId;
+  document.getElementById('s-time').textContent=new Date().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
+  show('succ');
+  const res=await writeTable(txnId);
+  const wrap=document.getElementById('wa-st');
+  const txt=document.getElementById('wa-txt');
+  if(res.ok){txt.textContent='\u2713 Assistant notified \u2014 payment confirmed';wrap.style.color='var(--success)';}
+  else{txt.textContent='Ref: '+txnId+' \u2014 configure DataTable to auto-notify';wrap.style.color='var(--muted)';}
+}
+
+show('pay-screen');
+</script>
+</body>
+</html>
