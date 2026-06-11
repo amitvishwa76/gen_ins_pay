@@ -295,6 +295,15 @@ body{
         </svg>
         <span id="wa-txt">Notifying assistant&hellip;</span>
       </div>
+
+      <!-- Debug panel — shows Supabase call logs -->
+      <div id="debug-wrap" style="display:none;width:100%;margin-top:16px;">
+        <div style="font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;
+          letter-spacing:.5px;margin-bottom:6px;">Supabase Debug Log</div>
+        <div id="debug-box" style="background:#f9fafb;border:1.5px solid #e5e7eb;
+          border-radius:10px;padding:10px 12px;max-height:200px;overflow-y:auto;
+          text-align:left;"></div>
+      </div>
     </div><!-- /succ -->
 
   </div><!-- /card -->
@@ -458,13 +467,35 @@ function show(id) {
   document.getElementById('succ').style.display       = id === 'succ'       ? 'flex'  : 'none';
 }
 
-// ── Write payment to Supabase ────────────────────────────────────────
-// Uses Supabase REST API directly — no SDK needed, zero dependencies
+// ── Debug logger ─────────────────────────────────────────────────────
+function dbg(msg, color) {
+  const box = document.getElementById('debug-box');
+  if (!box) return;
+  const line = document.createElement('div');
+  line.style.cssText = `font-family:'Courier New',monospace;font-size:11px;
+    padding:3px 0;border-bottom:1px solid #e5e7eb;color:${color||'#111827'};`;
+  line.textContent = new Date().toLocaleTimeString('en-IN') + '  ' + msg;
+  box.appendChild(line);
+  box.scrollTop = box.scrollHeight;
+}
+
+// ── Write payment to Supabase ─────────────────────────────────────────
 async function writeSupabase(txn) {
-  if (CFG.supabaseUrl === 'PASTE_YOUR_SUPABASE_URL_HERE') {
-    return { ok: false, err: 'Supabase not configured' };
+  dbg('Starting Supabase write...', '#6b7280');
+
+  // Check configured
+  if (!CFG.supabaseUrl || CFG.supabaseUrl === 'PASTE_YOUR_SUPABASE_URL_HERE') {
+    dbg('❌ supabaseUrl not set in CFG', '#dc2626'); return { ok: false, err: 'supabaseUrl not configured' };
   }
-  const url  = `${CFG.supabaseUrl}/rest/v1/${CFG.supabaseTable}`;
+  if (!CFG.supabaseKey || CFG.supabaseKey === 'PASTE_YOUR_SUPABASE_ANON_KEY_HERE') {
+    dbg('❌ supabaseKey not set in CFG', '#dc2626'); return { ok: false, err: 'supabaseKey not configured' };
+  }
+
+  dbg(`URL: ${CFG.supabaseUrl}`, '#6b7280');
+  dbg(`Table: ${CFG.supabaseTable}`, '#6b7280');
+  dbg(`Policy: ${pid}`, '#6b7280');
+
+  const endpoint = `${CFG.supabaseUrl}/rest/v1/${CFG.supabaseTable}`;
   const body = {
     policy_no:      pid,
     payment_status: 'PAID',
@@ -475,26 +506,78 @@ async function writeSupabase(txn) {
     plan:           pol.plan,
     due_date:       pol.due
   };
+
+  dbg('Sending PATCH (update existing row)...', '#6b7280');
   try {
-    const res = await fetch(url, {
-      method:  'POST',
+    // PATCH with ?policy_no=eq.GI2201045 — updates the existing pre-populated row
+    const patchUrl = `${endpoint}?policy_no=eq.${pid}`;
+    const patchRes = await fetch(patchUrl, {
+      method: 'PATCH',
       headers: {
         'Content-Type':  'application/json',
         'apikey':         CFG.supabaseKey,
         'Authorization': `Bearer ${CFG.supabaseKey}`,
-        'Prefer':        'resolution=merge-duplicates'  // upsert — updates row if policy_no exists
+        'Prefer':        'return=representation'
+      },
+      body: JSON.stringify({
+        payment_status: 'PAID',
+        transaction_id: txn,
+        amount:         pol.amt,
+        paid_at:        new Date().toISOString(),
+        policy_holder:  pol.name,
+        plan:           pol.plan,
+        due_date:       pol.due
+      })
+    });
+
+    dbg(`PATCH status: ${patchRes.status} ${patchRes.statusText}`, patchRes.ok ? '#059669' : '#dc2626');
+
+    if (patchRes.ok) {
+      const data = await patchRes.json().catch(() => []);
+      dbg(`PATCH response rows updated: ${Array.isArray(data) ? data.length : 'unknown'}`, '#059669');
+      if (Array.isArray(data) && data.length > 0) {
+        dbg('✅ Row updated successfully!', '#059669');
+        return { ok: true };
+      }
+      // PATCH returned 200 but 0 rows — row doesn't exist, try INSERT
+      dbg('PATCH updated 0 rows — trying INSERT...', '#d97706');
+    } else {
+      const errBody = await patchRes.json().catch(() => ({}));
+      dbg(`PATCH error: ${JSON.stringify(errBody)}`, '#dc2626');
+      dbg('Falling back to INSERT...', '#d97706');
+    }
+
+    // Fallback: INSERT new row
+    dbg('Sending POST (insert new row)...', '#6b7280');
+    const postRes = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'apikey':         CFG.supabaseKey,
+        'Authorization': `Bearer ${CFG.supabaseKey}`,
+        'Prefer':        'return=representation'
       },
       body: JSON.stringify(body)
     });
-    if (res.ok || res.status === 201) return { ok: true };
-    const err = await res.json().catch(() => ({}));
-    return { ok: false, err: err.message || 'HTTP ' + res.status };
+
+    dbg(`POST status: ${postRes.status} ${postRes.statusText}`, postRes.ok || postRes.status===201 ? '#059669' : '#dc2626');
+
+    if (postRes.ok || postRes.status === 201) {
+      dbg('✅ Row inserted successfully!', '#059669');
+      return { ok: true };
+    }
+
+    const postErr = await postRes.json().catch(() => ({}));
+    dbg(`POST error: ${JSON.stringify(postErr)}`, '#dc2626');
+    return { ok: false, err: postErr.message || postErr.hint || `HTTP ${postRes.status}` };
+
   } catch (e) {
+    dbg(`❌ Network error: ${e.message}`, '#dc2626');
     return { ok: false, err: e.message };
   }
 }
 
-// ── Payment flow ─────────────────────────────────────────────────────
+// ── Payment flow ──────────────────────────────────────────────────────
 let txnId = '';
 async function doPayment() {
   document.getElementById('pay-btn').disabled = true;
@@ -505,15 +588,23 @@ async function doPayment() {
   document.getElementById('s-txn').textContent  = txnId;
   document.getElementById('s-time').textContent = new Date().toLocaleString('en-IN', {dateStyle:'medium', timeStyle:'short'});
   show('succ');
+
+  // Show debug box
+  document.getElementById('debug-wrap').style.display = 'block';
+  dbg('=== Payment initiated ===', '#1a56a0');
+  dbg(`TxnID: ${txnId}`, '#6b7280');
+
   const res  = await writeSupabase(txnId);
   const wrap = document.getElementById('wa-st');
   const txt  = document.getElementById('wa-txt');
   if (res.ok) {
     txt.textContent  = '\u2713 Payment recorded \u2014 assistant will be notified shortly';
     wrap.style.color = 'var(--success)';
+    dbg('=== DONE ✅ ===', '#059669');
   } else {
-    txt.textContent  = 'Ref: ' + txnId + ' \u2014 ' + (res.err || 'configure Supabase to auto-notify');
-    wrap.style.color = 'var(--muted)';
+    txt.textContent  = 'Failed: ' + res.err;
+    wrap.style.color = '#dc2626';
+    dbg('=== FAILED ❌ === ' + res.err, '#dc2626');
   }
 }
 
